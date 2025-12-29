@@ -1,0 +1,59 @@
+{% extends "farm_management/base.html" %}
+
+{% block content %}
+<h2 style="text-align:center; margin-bottom:25px;">Breeding Log for Cattle: {{ cattle_id }}</h2>
+
+<div style="text-align:center; margin-bottom:20px;">
+    <a href="{% url 'add_breeding' cattle_id %}" 
+       style="background-color:#4CAF50; color:white; padding:8px 15px; text-decoration:none; border-radius:5px; margin-right:10px;">
+       Add New Record
+    </a>
+    <a href="{% url 'animal_tracking' %}" 
+       style="background-color:#f44336; color:white; padding:8px 15px; text-decoration:none; border-radius:5px;">
+       Back to Dashboard
+    </a>
+</div>
+
+{% if logs %}
+<table style="width:100%; border-collapse:collapse; text-align:center;">
+    <thead style="background-color:#4CAF50; color:white;">
+        <tr>
+            <th>Breeding Date</th>
+            <th>Method</th>
+            <th>Result</th>
+            <th>Expected Delivery</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr style="border-bottom:1px solid #ddd;">
+            <td>{{ log.0 }}</td>
+            <td>{{ log.1 }}</td>
+
+            <!-- Color-coded Result -->
+            <td>
+                {% if log.2 == "Pregnant" %}
+                    <span style="background-color:#4CAF50; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                {% elif log.2 == "In Heat" %}
+                    <span style="background-color:#FFC107; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                {% elif log.2 == "Breeding Failed" %}
+                    <span style="background-color:#F44336; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                {% elif log.2 == "Calved" %}
+                    <span style="background-color:#2196F3; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                {% else %}
+                    <span style="background-color:#9E9E9E; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                {% endif %}
+            </td>
+
+            <td>{{ log.3 }}</td>
+            <td>{{ log.4|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="text-align:center; font-size:16px; color:#555;">No breeding records found for this cattle.</p>
+{% endif %}
+
+{% endblock %}

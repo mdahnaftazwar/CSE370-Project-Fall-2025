@@ -11,18 +11,48 @@
             <th>Gender</th>
             <th>Health Status</th>
             <th>Assigned Caretaker</th>
+            <th>Breeding Status</th>  
+            <th>Breeding</th>  
         </tr>
     </thead>
     <tbody>
         {% for cattle in cattle_list %}
-        <tr>
+        <tr style="border-bottom:1px solid #ddd;">
             <td>{{ cattle.0 }}</td>
             <td>{{ cattle.1 }}</td>
             <td>{{ cattle.2 }}</td>
             <td>{{ cattle.3 }}</td>
             <td>{{ cattle.4|default:"Unassigned" }}</td>
+            
+            <!-- Color-coded Breeding Status -->
+            <td>
+                {% if cattle.5 == "Pregnant" %}
+                    <span style="background-color:#4CAF50; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5 }}</span>
+                {% elif cattle.5 == "In Heat" %}
+                    <span style="background-color:#FFC107; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5 }}</span>
+                {% elif cattle.5 == "Breeding Failed" %}
+                    <span style="background-color:#F44336; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5 }}</span>
+                {% elif cattle.5 == "Calved" %}
+                    <span style="background-color:#2196F3; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5 }}</span>
+                {% else %}
+                    <span style="background-color:#9E9E9E; color:white; padding:4px 8px; border-radius:4px;">Not Breeding</span>
+                {% endif %}
+            </td>
+
+            <!-- Add Record & View Log buttons -->
+            <td>
+                <a href="{% url 'add_breeding' cattle.0 %}" 
+                   style="background-color:#4CAF50; color:white; padding:5px 10px; text-decoration:none; border-radius:4px; margin-right:5px;">
+                   Add Record
+                </a>
+                <a href="{% url 'breeding_log' cattle.0 %}" 
+                   style="background-color:#2196F3; color:white; padding:5px 10px; text-decoration:none; border-radius:4px;">
+                   View Log
+                </a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
 {% endblock %}
