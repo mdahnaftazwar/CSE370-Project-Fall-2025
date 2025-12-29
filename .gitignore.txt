@@ -1,0 +1,30 @@
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database (Keep local, don't upload to GitHub)
+db.sqlite3
+*.db
+
+# Django sensitive information (if you use a .env file)
+.env
+
+# Static and Media files
+/static/
+/media/
+
+# IDE and System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

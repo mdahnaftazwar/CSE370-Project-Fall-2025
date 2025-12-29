@@ -1,0 +1,28 @@
+{% extends "farm_management/base.html" %}
+
+{% block content %}
+<h1>Staff Assignment & Biometric Tracker</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Cattle ID</th>
+            <th>Animal Name</th>
+            <th>Gender</th>
+            <th>Health Status</th>
+            <th>Assigned Caretaker</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cattle in cattle_list %}
+        <tr>
+            <td>{{ cattle.0 }}</td>
+            <td>{{ cattle.1 }}</td>
+            <td>{{ cattle.2 }}</td>
+            <td>{{ cattle.3 }}</td>
+            <td>{{ cattle.4|default:"Unassigned" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

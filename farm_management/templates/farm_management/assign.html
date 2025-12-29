@@ -1,0 +1,39 @@
+{% extends "farm_management/base.html" %}
+
+{% block content %}
+<h1>Admin Staff Assignment</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Cattle ID</th>
+            <th>Cattle Name</th>
+            <th>Current Caretaker</th>
+            <th>Update Assignment</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cattle in cattle_list %}
+        <tr>
+            <td>{{ cattle.0 }}</td>
+            <td>{{ cattle.1 }}</td>
+            <td>{{ cattle.2|default:"None" }}</td>
+            <td>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="cattle_id" value="{{ cattle.0 }}">
+                    <select name="employee_id" required>
+                        <option value="">-- Choose Staff --</option>
+                        {% for emp in employee_list %}
+                        <option value="{{ emp.0 }}">{{ emp.1 }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn"
+                        style="background: #28a745; color: white; border: none; padding: 5px 10px; cursor: pointer;">Assign</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
