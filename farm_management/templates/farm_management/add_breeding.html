@@ -1,0 +1,55 @@
+{% extends "farm_management/base.html" %}
+
+{% block content %}
+<h2 style="text-align:center; margin-bottom:20px;">Add Breeding Record for Cattle: {{ cattle_id }}</h2>
+
+{% if messages %}
+    <ul style="color:red; text-align:center;">
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<form method="POST" style="max-width:500px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:5px; background-color:#f9f9f9;">
+    {% csrf_token %}
+    
+    <label for="breeding_date">Breeding Date:</label><br>
+    <input type="date" id="breeding_date" name="breeding_date" required style="width:100%; padding:8px; margin-bottom:15px;"><br>
+
+    <label for="method">Method:</label><br>
+    <select id="method" name="method" required style="width:100%; padding:8px; margin-bottom:15px;">
+        <option value="Natural">Natural</option>
+        <option value="AI">AI</option>
+    </select><br>
+
+    <label for="result">Result:</label><br>
+    <select id="result" name="result" required style="width:100%; padding:8px; margin-bottom:15px;">
+        <option value="Pregnant">Pregnant</option>
+        <option value="Not Pregnant">Not Pregnant</option>
+        <option value="In Heat">In Heat</option>
+        <option value="Calved">Calved</option>
+        <option value="Breeding Failed">Breeding Failed</option>
+    </select><br>
+
+    <label for="expected_delivery">Expected Delivery Date:</label><br>
+    <input type="date" id="expected_delivery" name="expected_delivery" required style="width:100%; padding:8px; margin-bottom:15px;"><br>
+
+    <label for="notes">Notes:</label><br>
+    <textarea id="notes" name="notes" rows="3" style="width:100%; padding:8px; margin-bottom:15px;"></textarea><br>
+
+    <div style="text-align:center;">
+        <button type="submit" style="padding:10px 20px; background-color:#4CAF50; color:white; border:none; border-radius:5px;">Submit</button>
+        <a href="{% url 'animal_tracking' %}" style="padding:10px 15px; background-color:#f44336; color:white; text-decoration:none; border-radius:5px; margin-left:10px;">Cancel</a>
+    </div>
+</form>
+
+<script>
+    const breedingInput = document.getElementById('breeding_date');
+    const deliveryInput = document.getElementById('expected_delivery');
+
+    breedingInput.addEventListener('change', function() {
+        deliveryInput.min = this.value; // expected delivery cannot be before breeding
+    });
+</script>
+{% endblock %}
