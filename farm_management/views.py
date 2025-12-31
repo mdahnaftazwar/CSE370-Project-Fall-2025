@@ -11,7 +11,7 @@ def login_view(request):
         with connection.cursor() as cursor:
 
             cursor.execute(
-                "SELECT id, name, type FROM user WHERE username = %s AND password = %s",
+                "SELECT id, name, type, username FROM user WHERE username = %s AND password = %s",
                 [username, password],
             )
             user = cursor.fetchone()
@@ -21,6 +21,7 @@ def login_view(request):
             request.session["user_id"] = user[0]
             request.session["user_name"] = user[1]
             request.session["user_type"] = user[2]
+            request.session["username"] = user[3]
             return redirect("animal_tracking")
         else:
             messages.error(request, "Invalid Username or Password")
@@ -38,19 +39,34 @@ def logout_view(request):
 
 # FEATURE 1: Animal Tracking & Health (Your "Dashboard")
 def animal_tracking(request):
-
     if "user_id" not in request.session:
         return redirect("login")
 
-    with connection.cursor() as cursor:
+    user_id = request.session.get("user_id")
+    user_type = request.session.get("user_type")
+    username = request.session.get("username")
 
-        query = """
-            SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker
-            FROM cattle c
-            LEFT JOIN employee e ON c.employee_id = e.id
-            LEFT JOIN user u ON e.user_id = u.id
-        """
-        cursor.execute(query)
+    with connection.cursor() as cursor:
+        if username == "admin" or user_type == "Customer":
+            # ADMIN/CUSTOMER VIEW: Show every cow, even those without staff
+            query = """
+                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker
+                FROM cattle c
+                LEFT JOIN employee e ON c.employee_id = e.id
+                LEFT JOIN user u ON e.user_id = u.id
+            """
+            cursor.execute(query)
+        else:
+            # STAFF VIEW: Only show cattle assigned to THIS specific staff member
+            query = """
+                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker
+                FROM cattle c
+                INNER JOIN employee e ON c.employee_id = e.id
+                INNER JOIN user u ON e.user_id = u.id
+                WHERE u.id = %s
+            """
+            cursor.execute(query, [user_id])
+
         row_data = cursor.fetchall()
 
     return render(request, "farm_management/dashboard.html", {"cattle_list": row_data})
@@ -59,8 +75,11 @@ def animal_tracking(request):
 # FEATURE 4: Admin Staff Assignment
 def assign_staff(request):
 
-    if "user_id" not in request.session or request.session.get("user_type") != "Staff":
-        return redirect("login")
+    if "user_id" not in request.session or request.session.get("username") != "admin":
+        messages.error(
+            request, "Access Denied: Only the Farm Manager can assign staff."
+        )
+        return redirect("animal_tracking")
 
     with connection.cursor() as cursor:
         if request.method == "POST":

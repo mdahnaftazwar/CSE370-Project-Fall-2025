@@ -80,7 +80,7 @@
     <div class="navbar">
         <a href="{% url 'animal_tracking' %}">🏠 Dashboard</a>
 
-        {% if request.session.user_type == 'Staff' %}
+        {% if request.session.username == 'admin' %}
         <a href="{% url 'assign_staff' %}">👥 Assign Staff</a>
         {% endif %}
 
@@ -91,6 +91,15 @@
     </div>
 
     <div class="container">
+        {% if messages %}
+        {% for message in messages %}
+        <div style="padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; 
+                        color: #721c24; background-color: #f8d7da; border-color: #f5c6cb;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
         {% block content %}
         {% endblock %}
     </div>

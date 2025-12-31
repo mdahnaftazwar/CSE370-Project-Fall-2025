@@ -1,8 +1,13 @@
 {% extends "farm_management/base.html" %}
 
 {% block content %}
-<h1>Staff Assignment & Biometric Tracker</h1>
-
+<h1>
+    {% if request.session.user_type == 'Staff' %}
+    My Assigned Cattle
+    {% else %}
+    Global Cattle Inventory
+    {% endif %}
+</h1>
 <table>
     <thead>
         <tr>
