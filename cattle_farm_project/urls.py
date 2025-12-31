@@ -27,4 +27,5 @@ urlpatterns = [
     #----- Feature 3: Breeding -----> ZR
     path("breeding/<str:cattle_id>/", breeding_log, name = "breeding_log"),
     path("breeding/add/<str:cattle_id>/", add_breeding, name = "add_breeding"),
+    path("calendar/", task_calendar, name="task_calendar"),
 ]

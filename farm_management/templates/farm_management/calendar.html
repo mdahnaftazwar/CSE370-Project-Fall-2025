@@ -1,0 +1,71 @@
+{% extends "farm_management/base.html" %}
+
+{% block content %}
+<h2>Daily Tasks for {{ today }}</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Cattle</th>
+            <th>Feeding</th>
+            <th>Cleaning</th>
+            <th>Medicine</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in tasks %}
+        <tr {% if t.2 and t.3 and t.4 %}style="background-color: #d4edda;" {% endif %}>
+            <td>{{ t.1 }} ({{ t.0 }})</td>
+
+            <td>
+                {% if t.2 %}
+                ✅ Done
+                {% else %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="task_id" value="{{ t.5 }}">
+                    <input type="hidden" name="task_type" value="feeding">
+                    <button type="submit">Mark Done</button>
+                </form>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if t.3 %}
+                ✅ Done
+                {% else %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="task_id" value="{{ t.5 }}">
+                    <input type="hidden" name="task_type" value="cleaning">
+                    <button type="submit">Mark Done</button>
+                </form>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if t.4 %}
+                ✅ Done
+                {% else %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="task_id" value="{{ t.5 }}">
+                    <input type="hidden" name="task_type" value="medicine">
+                    <button type="submit">Mark Done</button>
+                </form>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if t.2 and t.3 and t.4 %}
+                <strong style="color: green;">ALL DONE! 🎉</strong>
+                {% else %}
+                <span style="color: orange;">In Progress</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

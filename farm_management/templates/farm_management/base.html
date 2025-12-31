@@ -35,6 +35,26 @@
             padding: 30px;
         }
 
+        /* Message Styles */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
         table {
             border-collapse: collapse;
             width: 100%;
@@ -79,8 +99,9 @@
 
     <div class="navbar">
         <a href="{% url 'animal_tracking' %}">🏠 Dashboard</a>
+        <a href="{% url 'task_calendar' %}">📅 Task Calendar</a>
 
-        {% if request.session.user_type == 'Staff' %}
+        {% if request.session.username == 'admin' %}
         <a href="{% url 'assign_staff' %}">👥 Assign Staff</a>
         {% endif %}
 
@@ -91,6 +112,14 @@
     </div>
 
     <div class="container">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
         {% block content %}
         {% endblock %}
     </div>
