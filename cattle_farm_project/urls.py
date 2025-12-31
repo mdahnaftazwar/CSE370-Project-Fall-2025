@@ -16,11 +16,18 @@ Including another URLconf
 """
 
 from django.urls import path
-from farm_management.views import animal_tracking, assign_staff, login_view, logout_view
+from farm_management.views import (
+    animal_tracking,
+    assign_staff,
+    login_view,
+    logout_view,
+    task_calendar,
+)
 
 urlpatterns = [
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
     path("", animal_tracking, name="animal_tracking"),  # Home points to tracking
     path("assign/", assign_staff, name="assign_staff"),
+    path("calendar/", task_calendar, name="task_calendar"),
 ]
