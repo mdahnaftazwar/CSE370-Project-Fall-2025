@@ -4,13 +4,16 @@
 <h2 style="text-align:center; margin-bottom:25px;">Breeding Log for Cattle: {{ cattle_id }}</h2>
 
 <div style="text-align:center; margin-bottom:20px;">
-    <a href="{% url 'add_breeding' cattle_id %}" 
-       style="background-color:#4CAF50; color:white; padding:8px 15px; text-decoration:none; border-radius:5px; margin-right:10px;">
-       Add New Record
+    {% if request.session.user_type == 'Staff' or request.session.user_type == 'Vet' %}
+    <a href="{% url 'add_breeding' cattle_id %}"
+        style="background-color:#4CAF50; color:white; padding:8px 15px; text-decoration:none; border-radius:5px; margin-right:10px;">
+        Add New Record
     </a>
-    <a href="{% url 'animal_tracking' %}" 
-       style="background-color:#f44336; color:white; padding:8px 15px; text-decoration:none; border-radius:5px;">
-       Back to Dashboard
+    {% endif %}
+
+    <a href="{% url 'animal_tracking' %}"
+        style="background-color:#f44336; color:white; padding:8px 15px; text-decoration:none; border-radius:5px;">
+        Back to Dashboard
     </a>
 </div>
 
@@ -34,15 +37,20 @@
             <!-- Color-coded Result -->
             <td>
                 {% if log.2 == "Pregnant" %}
-                    <span style="background-color:#4CAF50; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                <span style="background-color:#4CAF50; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
+                    }}</span>
                 {% elif log.2 == "In Heat" %}
-                    <span style="background-color:#FFC107; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                <span style="background-color:#FFC107; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
+                    }}</span>
                 {% elif log.2 == "Breeding Failed" %}
-                    <span style="background-color:#F44336; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                <span style="background-color:#F44336; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
+                    }}</span>
                 {% elif log.2 == "Calved" %}
-                    <span style="background-color:#2196F3; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                <span style="background-color:#2196F3; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
+                    }}</span>
                 {% else %}
-                    <span style="background-color:#9E9E9E; color:white; padding:4px 8px; border-radius:4px;">{{ log.2 }}</span>
+                <span style="background-color:#9E9E9E; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
+                    }}</span>
                 {% endif %}
             </td>
 
