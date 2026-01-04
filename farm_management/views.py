@@ -7,8 +7,9 @@ import datetime
 
 def login_view(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "").strip()
+
 
         with connection.cursor() as cursor:
 
@@ -48,11 +49,22 @@ def animal_tracking(request):
     user_type = request.session.get("user_type")
     username = request.session.get("username")
 
+    today = datetime.date.today()
+    festival_tag = None
+
+    # Festival auto-tagging - ZR
+    if today.month == 4:
+        festival_tag = "🟣 Eid Sale"
+    elif today.month == 10:
+        festival_tag = "🟠 Pujo Special"
+    elif today.month == 1:
+        festival_tag = "🔵 New Year Offer"
+
     with connection.cursor() as cursor:
         if username == "admin" or user_type == "Customer":
             # ADMIN/CUSTOMER VIEW: Show every cow, even those without staff
             query = """
-                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker
+                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker, c.breeding_status, c.sale_status, c.estimated_value
                 FROM cattle c
                 LEFT JOIN employee e ON c.employee_id = e.id
                 LEFT JOIN user u ON e.user_id = u.id
@@ -61,7 +73,7 @@ def animal_tracking(request):
         else:
             # STAFF VIEW: Only show cattle assigned to THIS specific staff member
             query = """
-                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker
+                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker, c.breeding_status, c.sale_status, c.estimated_value
                 FROM cattle c
                 INNER JOIN employee e ON c.employee_id = e.id
                 INNER JOIN user u ON e.user_id = u.id
@@ -71,7 +83,7 @@ def animal_tracking(request):
 
         row_data = cursor.fetchall()
 
-    return render(request, "farm_management/dashboard.html", {"cattle_list": row_data})
+    return render(request, "farm_management/dashboard.html", {"cattle_list": row_data, "festival_tag": festival_tag})
 
 
 # FEATURE 4: Admin Staff Assignment
@@ -129,22 +141,17 @@ def breeding_log(request, cattle_id):
         return redirect("login")
 
     with connection.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT breeding_date, method, result, expected_delivery, notes
             FROM breeding_log
             WHERE cattle_id = %s
             ORDER BY breeding_date DESC
-                       """,
-            [cattle_id],
-        )
-        logs = cursor.fetchall()
+        """, [cattle_id])
+        columns = [col[0] for col in cursor.description]
+        logs = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-        return render(
-            request,
-            "farm_management/breeding.html",
-            {"logs": logs, "cattle_id": cattle_id},
-        )
+    return render(request, "farm_management/breeding.html", {"logs": logs, "cattle_id": cattle_id})
+
 
 
 def add_breeding(request, cattle_id):
@@ -282,3 +289,102 @@ def task_calendar(request):
     return render(
         request, "farm_management/calendar.html", {"tasks": tasks, "today": today}
     )
+
+
+#ZR- Feature 2
+
+# FEATURE-2: YIELD & PRODUCTION + SALE STATUS
+
+def production_log(request, cattle_id):
+    if "user_id" not in request.session:
+        return redirect("login")
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT date_recorded, milk_yield, fat_content, notes
+            FROM production
+            WHERE cattle_id = %s
+            ORDER BY date_recorded DESC
+        """, [cattle_id])
+
+        columns = [col[0] for col in cursor.description]
+        logs = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        # Also get sale info
+        cursor.execute("SELECT sale_status, estimated_value FROM cattle WHERE cattle_id=%s", [cattle_id])
+        sale_info = cursor.fetchone()
+        sale_status = sale_info[0]
+        estimated_value = sale_info[1]
+
+    # rename logs -> production_list
+    return render(request, "farm_management/production.html", {
+        "production_list": logs,  # <--- changed from logs
+        "cattle_id": cattle_id,
+        "sale_status": sale_status.strip().title(),  # normalize
+        "estimated_value": estimated_value
+    })
+
+
+
+def add_production(request, cattle_id):
+    if "user_id" not in request.session:
+        return redirect("login")
+
+    allowed_roles = ["Staff", "Vet"]
+    if request.session.get("user_type") not in allowed_roles:
+        messages.error(request, "Access Denied: Only Staff or Vets can add production records.")
+        return redirect("animal_tracking")
+
+    if request.method == "POST":
+        date_recorded = request.POST.get("date_recorded")
+        milk_yield = request.POST.get("milk_yield")
+        fat_content = request.POST.get("fat_content")
+        notes = request.POST.get("notes")
+
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO production (cattle_id, milk_yield, fat_content, date_recorded, notes)
+                VALUES (%s, %s, %s, %s, %s)
+            """, [cattle_id, milk_yield, fat_content, date_recorded, notes])
+
+        messages.success(request, "Production record added successfully!")
+        return redirect("production_log", cattle_id=cattle_id)
+
+    return render(request, "farm_management/add_production.html", {"cattle_id": cattle_id})
+
+
+def update_sale_status(request, cattle_id):
+    if "user_id" not in request.session:
+        return redirect("login")
+
+    allowed_roles = ["Staff", "Vet"]
+    if request.session.get("user_type") not in allowed_roles:
+        messages.error(request, "Access Denied: Only Staff or Vets can update sale status.")
+        return redirect("animal_tracking")
+
+    if request.method == "POST":
+        new_status = request.POST.get("sale_status")
+        estimated_value = request.POST.get("estimated_value", 0)
+
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                UPDATE cattle
+                SET sale_status = %s, estimated_value = %s
+                WHERE cattle_id = %s
+            """, [new_status, estimated_value, cattle_id])
+
+        messages.success(request, "Sale status updated successfully!")
+        return redirect("production_log", cattle_id=cattle_id)
+
+    # if GET request -> then fetch current sell info to pre-fill the form
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT sale_status, estimated_value FROM cattle WHERE cattle_id=%s", [cattle_id])
+        sale_info = cursor.fetchone()
+        sale_status = sale_info[0]
+        estimated_value = sale_info[1]
+
+    return render(request, "farm_management/update_sale.html", {
+        "cattle_id": cattle_id,
+        "sale_status": sale_status,
+        "estimated_value": estimated_value
+    })

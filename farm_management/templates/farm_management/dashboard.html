@@ -18,6 +18,8 @@
             <th>Assigned Caretaker</th>
             <th>Breeding Status</th>
             <th>Breeding</th>
+            <th>Production</th>
+            <th>Sale Status</th>
         </tr>
     </thead>
     <tbody>
@@ -31,23 +33,23 @@
 
             <!-- Color-coded Breeding Status -->
             <td>
-                {% if cattle.5 == "Pregnant" %}
-                <span style="background-color:#4CAF50; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5
-                    }}</span>
-                {% elif cattle.5 == "In Heat" %}
-                <span style="background-color:#FFC107; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5
-                    }}</span>
-                {% elif cattle.5 == "Breeding Failed" %}
-                <span style="background-color:#F44336; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5
-                    }}</span>
-                {% elif cattle.5 == "Calved" %}
-                <span style="background-color:#2196F3; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5
-                    }}</span>
+                {% if cattle.5 %}
+                    {% if cattle.5 == "Pregnant" %}
+                        <span style="background-color:#4CAF50; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5 }}</span>
+                    {% elif cattle.5 == "In Heat" %}
+                        <span style="background-color:#FFC107; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5 }}</span>
+                    {% elif cattle.5 == "Breeding Failed" %}
+                        <span style="background-color:#F44336; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5 }}</span>
+                    {% elif cattle.5 == "Calved" %}
+                        <span style="background-color:#2196F3; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5 }}</span>
+                    {% else %}
+                        <span style="background-color:#9E9E9E; color:white; padding:4px 8px; border-radius:4px;">{{ cattle.5 }}</span>
+                    {% endif %}
                 {% else %}
-                <span style="background-color:#9E9E9E; color:white; padding:4px 8px; border-radius:4px;">Not
-                    Breeding</span>
+                    <span style="background-color:#9E9E9E; color:white; padding:4px 8px; border-radius:4px;">Not Breeding</span>
                 {% endif %}
             </td>
+
 
             <!-- Add Record & View Log buttons -->
             <td>
@@ -63,6 +65,36 @@
                     View Log
                 </a>
             </td>
+
+            <!-- Production Log button -->
+            <td>
+                <a href="{% url 'production_log' cattle.0 %}"
+                    style="background-color:#2196F3; color:white; padding:5px 10px; text-decoration:none; border-radius:4px;">
+                    View Production
+                </a>
+            </td>
+
+            <!-- Sale Status -->
+            <td>
+                {% if cattle.6 == "For Sale" %}
+                    <span style="color:#2e7d32; font-weight:bold;">🟢 For Sale</span>
+                    {% if festival_tag %}
+                        <div style="margin-top:4px; font-size:12px; color:#d84315;">{{ festival_tag }}</div>
+                    {% endif %}
+                {% elif cattle.6 == "Sold" %}
+                    <span style="color:#f44336; font-weight:bold;">🛑 Sold</span>
+                {% else %}
+                    <span style="color:#616161; font-weight:bold;">⚪ Not for Sale</span>
+                {% endif %}
+
+                {% if request.session.user_type in "Staff Vet" %}
+                    <br>
+                    <a href="{% url 'update_sale_status' cattle.0 %}" style="font-size:12px; color:#2196F3; text-decoration:none;">Update Sale</a>
+                {% endif %}
+            </td>
+
+
+
         </tr>
         {% endfor %}
     </tbody>

@@ -1,0 +1,16 @@
+<form method="POST" style="max-width:500px; margin:auto; padding:20px; border-radius:10px; background:#f9f9f9; box-shadow:0 2px 8px rgba(0,0,0,0.1); border:1px solid #ddd;">
+    {% csrf_token %}
+    
+    <label>Sale Status:</label>
+    <select name="sale_status" required style="width:100%; padding:8px; margin-bottom:15px; border-radius:5px; border:1px solid #ccc;">
+        <option value="Not for Sale" {% if sale_status == "Not for Sale" %}selected{% endif %}>Not for Sale</option>
+        <option value="For Sale" {% if sale_status == "For Sale" %}selected{% endif %}>For Sale</option>
+        <option value="Sold" {% if sale_status == "Sold" %}selected{% endif %}>Sold</option>
+    </select>
+    
+    <label>Estimated Value:</label>
+    <input type="number" step="0.01" min="0" name="estimated_value" value="{{ estimated_value }}" style="width:100%; padding:8px; margin-bottom:20px; border-radius:5px; border:1px solid #ccc;">
+    
+    <button type="submit" style="background-color:#FFC107; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">Update</button>
+    <a href="{% url 'production_log' cattle_id %}" style="background-color:#f44336; color:white; padding:10px 20px; border-radius:5px; text-decoration:none; margin-left:10px;">Cancel</a>
+</form>
