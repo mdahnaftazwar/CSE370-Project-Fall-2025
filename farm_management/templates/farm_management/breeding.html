@@ -31,31 +31,26 @@
     <tbody>
         {% for log in logs %}
         <tr style="border-bottom:1px solid #ddd;">
-            <td>{{ log.0 }}</td>
-            <td>{{ log.1 }}</td>
+            <td>{{ log.breeding_date }}</td>
+            <td>{{ log.method }}</td>
 
             <!-- Color-coded Result -->
             <td>
-                {% if log.2 == "Pregnant" %}
-                <span style="background-color:#4CAF50; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
-                    }}</span>
-                {% elif log.2 == "In Heat" %}
-                <span style="background-color:#FFC107; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
-                    }}</span>
-                {% elif log.2 == "Breeding Failed" %}
-                <span style="background-color:#F44336; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
-                    }}</span>
-                {% elif log.2 == "Calved" %}
-                <span style="background-color:#2196F3; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
-                    }}</span>
+                {% if log.result == "Pregnant" %}
+                <span style="background-color:#4CAF50; color:white; padding:4px 8px; border-radius:4px;">{{ log.result }}</span>
+                {% elif log.result == "In Heat" %}
+                <span style="background-color:#FFC107; color:white; padding:4px 8px; border-radius:4px;">{{ log.result }}</span>
+                {% elif log.result == "Breeding Failed" %}
+                <span style="background-color:#F44336; color:white; padding:4px 8px; border-radius:4px;">{{ log.result }}</span>
+                {% elif log.result == "Calved" %}
+                <span style="background-color:#2196F3; color:white; padding:4px 8px; border-radius:4px;">{{ log.result }}</span>
                 {% else %}
-                <span style="background-color:#9E9E9E; color:white; padding:4px 8px; border-radius:4px;">{{ log.2
-                    }}</span>
+                <span style="background-color:#9E9E9E; color:white; padding:4px 8px; border-radius:4px;">{{ log.result }}</span>
                 {% endif %}
             </td>
 
-            <td>{{ log.3 }}</td>
-            <td>{{ log.4|default:"-" }}</td>
+            <td>{{ log.expected_delivery }}</td>
+            <td>{{ log.notes|default:"-" }}</td>
         </tr>
         {% endfor %}
     </tbody>
