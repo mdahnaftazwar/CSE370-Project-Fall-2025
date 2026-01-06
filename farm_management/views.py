@@ -38,10 +38,6 @@ def logout_view(request):
     return redirect("login")
 
 
-# --- FEATURES ---
-
-
-# FEATURE 1: Animal Tracking & Health (Your "Dashboard")
 def animal_tracking(request):
     if "user_id" not in request.session:
         return redirect("login")
@@ -63,7 +59,7 @@ def animal_tracking(request):
 
     with connection.cursor() as cursor:
         if username == "admin" or user_type == "Customer" or user_type == "Vet":
-            # ADMIN/CUSTOMER VIEW: Show every cow, even those without staff
+
             query = """
                 SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker, c.breeding_status, c.sale_status, c.estimated_value, c.health_score
                 FROM cattle c
@@ -72,7 +68,7 @@ def animal_tracking(request):
             """
             cursor.execute(query)
         else:
-            # STAFF VIEW: Only show cattle assigned to THIS specific staff member
+
             query = """
                 SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker, c.breeding_status, c.sale_status, c.estimated_value, c.health_score
                 FROM cattle c
@@ -91,10 +87,8 @@ def animal_tracking(request):
     )
 
 
-# FEATURE 4: Admin Staff Assignment
-# FEATURE 4: Admin Staff Assignment
 def assign_staff(request):
-    # Security check: Only the 'admin' user can access this page
+
     if "user_id" not in request.session or request.session.get("username") != "admin":
         messages.error(
             request, "Access Denied: Only the Farm Manager can assign staff."
@@ -113,7 +107,6 @@ def assign_staff(request):
             messages.success(request, f"Cattle {cattle_id} successfully reassigned.")
             return redirect("assign_staff")
 
-        # Fetch cattle list for the table
         cursor.execute(
             """
             SELECT c.cattle_id, c.name, u.name as caretaker 
@@ -124,7 +117,6 @@ def assign_staff(request):
         )
         cattle_list = cursor.fetchall()
 
-        # FETCH: Only users whose type is exactly 'Staff'
         cursor.execute(
             """
             SELECT e.id, u.name 
@@ -140,10 +132,6 @@ def assign_staff(request):
         "farm_management/assign.html",
         {"cattle_list": cattle_list, "employee_list": employee_list},
     )
-
-
-# ZR
-# FEATURE-3: BREEDING STATUS AND LOG OF THE CATTLES
 
 
 def breeding_log(request, cattle_id):
@@ -172,7 +160,6 @@ def add_breeding(request, cattle_id):
     if "user_id" not in request.session:
         return redirect("login")
 
-    # 1. Permission Check: Only Staff and Vet can access this
     allowed_roles = ["Staff", "Vet"]
     if request.session.get("user_type") not in allowed_roles:
         messages.error(
@@ -187,7 +174,6 @@ def add_breeding(request, cattle_id):
         expected_delivery = request.POST.get("expected_delivery")
         notes = request.POST.get("notes")
 
-        # Existing validation and SQL logic...
         breeding_date_obj = parse_date(breeding_date)
         expected_delivery_obj = parse_date(expected_delivery)
 
@@ -250,15 +236,12 @@ def task_calendar(request):
             query = f"UPDATE daily_tasks SET {task_type}_done = TRUE WHERE task_id = %s AND task_date = %s"
             cursor.execute(query, [task_id, today])
 
-            # --- NEW SUCCESS LOGIC ---
-            # Count total cattle assigned to this staff
             cursor.execute(
                 "SELECT COUNT(*) FROM cattle c JOIN employee e ON c.employee_id = e.id JOIN user u ON e.user_id = u.id WHERE u.id = %s",
                 [user_id],
             )
             total_cattle = cursor.fetchone()[0]
 
-            # Count how many cattle have all 3 tasks done today
             cursor.execute(
                 """
                 SELECT COUNT(*) FROM daily_tasks t 
@@ -280,7 +263,6 @@ def task_calendar(request):
 
             return redirect("task_calendar")
 
-        # Keep your existing FETCH logic here...
         cursor.execute(
             """
             SELECT c.cattle_id, c.name, t.feeding_done, t.cleaning_done, t.medicine_done, t.task_id
@@ -294,7 +276,6 @@ def task_calendar(request):
         )
         tasks = cursor.fetchall()
 
-        # Logic to ensure daily rows exist...
         for item in tasks:
             if item[5] is None:
                 cursor.execute(
@@ -302,7 +283,6 @@ def task_calendar(request):
                     [item[0], today],
                 )
 
-        # Re-fetch tasks after insert...
         cursor.execute(
             "SELECT c.cattle_id, c.name, t.feeding_done, t.cleaning_done, t.medicine_done, t.task_id FROM cattle c LEFT JOIN daily_tasks t ON c.cattle_id = t.cattle_id AND t.task_date = %s JOIN employee e ON c.employee_id = e.id JOIN user u ON e.user_id = u.id WHERE u.id = %s",
             [today, user_id],
@@ -312,11 +292,6 @@ def task_calendar(request):
     return render(
         request, "farm_management/calendar.html", {"tasks": tasks, "today": today}
     )
-
-
-# ZR- Feature 2
-
-# FEATURE-2: YIELD & PRODUCTION + SALE STATUS
 
 
 def production_log(request, cattle_id):
@@ -337,7 +312,6 @@ def production_log(request, cattle_id):
         columns = [col[0] for col in cursor.description]
         logs = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-        # Also get sale info
         cursor.execute(
             "SELECT sale_status, estimated_value FROM cattle WHERE cattle_id=%s",
             [cattle_id],
@@ -346,14 +320,13 @@ def production_log(request, cattle_id):
         sale_status = sale_info[0]
         estimated_value = sale_info[1]
 
-    # rename logs -> production_list
     return render(
         request,
         "farm_management/production.html",
         {
-            "production_list": logs,  # <--- changed from logs
+            "production_list": logs,
             "cattle_id": cattle_id,
-            "sale_status": sale_status.strip().title(),  # normalize
+            "sale_status": sale_status.strip().title(),
             "estimated_value": estimated_value,
         },
     )
@@ -421,7 +394,6 @@ def update_sale_status(request, cattle_id):
         messages.success(request, "Sale status updated successfully!")
         return redirect("production_log", cattle_id=cattle_id)
 
-    # if GET request -> then fetch current sell info to pre-fill the form
     with connection.cursor() as cursor:
         cursor.execute(
             "SELECT sale_status, estimated_value FROM cattle WHERE cattle_id=%s",
@@ -450,27 +422,25 @@ def manage_salaries(request):
     with connection.cursor() as cursor:
         if request.method == "POST":
             emp_id = request.POST.get("employee_id")
-            # Get base salary from form and convert to Decimal for math
+
             base_salary = Decimal(request.POST.get("salary"))
             new_rating = request.POST.get("rating")
 
-            # --- SALARY ADJUSTMENT LOGIC ---
             final_salary = base_salary
 
             if new_rating == "Excellent":
-                # Increase by 10%
+
                 final_salary = base_salary * Decimal("1.10")
                 messages.success(
                     request, f"Salary increased by 10% for Excellent performance!"
                 )
             elif new_rating == "Poor":
-                # Deduct by 10%
+
                 final_salary = base_salary * Decimal("0.90")
                 messages.warning(
                     request, f"Salary deducted by 10% due to Poor performance."
                 )
 
-            # Update the performance table with adjusted salary
             cursor.execute(
                 """
                 UPDATE employee_performance 
@@ -480,13 +450,12 @@ def manage_salaries(request):
                 [final_salary, new_rating, emp_id],
             )
 
-            # Sync back to main employee table
             cursor.execute(
                 "UPDATE employee SET salary = %s WHERE id = %s", [final_salary, emp_id]
             )
 
             return redirect("manage_salaries")
-        # FETCH: Join User, Employee, and Performance tables
+
         cursor.execute(
             """
             SELECT e.id, u.name, u.type, p.current_salary, p.rating 
@@ -503,12 +472,11 @@ def manage_salaries(request):
 
 
 def manage_feed(request):
-    # Security: Strictly Admin access
+
     if request.session.get("username") != "admin":
         messages.error(request, "Access Denied: Admin only.")
         return redirect("animal_tracking")
 
-    # Required for the template to check for expired feed
     today = date.today()
 
     with connection.cursor() as cursor:
@@ -516,16 +484,14 @@ def manage_feed(request):
             feed_type = request.POST.get("feed_type")
             qty_input = request.POST.get("quantity")
 
-            # Ensure quantity is a valid Decimal
             try:
                 qty_change = Decimal(qty_input)
             except (TypeError, ValueError):
                 messages.error(request, "Invalid quantity entered.")
                 return redirect("manage_feed")
 
-            action = request.POST.get("action")  # 'add' or 'remove'
+            action = request.POST.get("action")
 
-            # Calculate Expiration Date based on standard feed life
             days_valid = {
                 "Green Grass": 2,
                 "Silage": 365,
@@ -535,7 +501,7 @@ def manage_feed(request):
             expiry = today + timedelta(days=days_valid.get(feed_type, 30))
 
             if action == "add":
-                # Update or Insert into inventory
+
                 cursor.execute(
                     """
                     INSERT INTO feed_inventory (feed_type, quantity_kg, expiration_date)
@@ -546,14 +512,13 @@ def manage_feed(request):
                     [feed_type, qty_change, expiry, qty_change, expiry],
                 )
 
-                # Log the action for the audit trail
                 cursor.execute(
                     "INSERT INTO feed_log (feed_type, action_type, quantity_kg) VALUES (%s, 'Added', %s)",
                     [feed_type, qty_change],
                 )
 
             elif action == "remove":
-                # Check current stock before removing to avoid negative values
+
                 cursor.execute(
                     "SELECT quantity_kg FROM feed_inventory WHERE feed_type = %s",
                     [feed_type],
@@ -579,7 +544,6 @@ def manage_feed(request):
             messages.success(request, f"Inventory updated for {feed_type}")
             return redirect("manage_feed")
 
-        # Fetch current inventory and recent logs
         cursor.execute(
             "SELECT feed_type, quantity_kg, expiration_date FROM feed_inventory"
         )
@@ -590,7 +554,6 @@ def manage_feed(request):
         )
         logs = cursor.fetchall()
 
-    # Pass 'today' to the context so feed.html can highlight expired items
     return render(
         request,
         "farm_management/feed.html",
@@ -606,7 +569,6 @@ def update_health(request, cattle_id):
     if request.method == "POST":
         score = int(request.POST.get("health_score"))
 
-        # Health categorization logic
         if score < 30:
             status = "Severely Sick"
         elif score < 50:
