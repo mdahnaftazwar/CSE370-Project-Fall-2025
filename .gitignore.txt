@@ -28,3 +28,6 @@ Thumbs.db
 
 # Log files
 *.log
+
+__pycache__/
+*.py[cod]

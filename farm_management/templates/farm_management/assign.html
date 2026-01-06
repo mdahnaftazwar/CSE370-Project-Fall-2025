@@ -1,7 +1,11 @@
 {% extends "farm_management/base.html" %}
 
 {% block content %}
-<h1>Admin Staff Assignment</h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>Admin Staff Assignment</h1>
+    <a href="{% url 'animal_tracking' %}" style="text-decoration: none; color: #3498db; font-weight: bold;">← Back to
+        Dashboard</a>
+</div>
 
 <table>
     <thead>
@@ -17,23 +21,37 @@
         <tr>
             <td>{{ cattle.0 }}</td>
             <td>{{ cattle.1 }}</td>
-            <td>{{ cattle.2|default:"None" }}</td>
+            <td style="font-weight: bold; color: #2c3e50;">
+                {{ cattle.2|default:"Unassigned" }}
+            </td>
             <td>
-                <form method="POST">
+                <form method="POST" style="display: flex; gap: 10px;">
                     {% csrf_token %}
                     <input type="hidden" name="cattle_id" value="{{ cattle.0 }}">
-                    <select name="employee_id" required>
+
+                    <select name="employee_id" required
+                        style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
                         <option value="">-- Choose Staff --</option>
                         {% for emp in employee_list %}
                         <option value="{{ emp.0 }}">{{ emp.1 }}</option>
                         {% endfor %}
                     </select>
+
                     <button type="submit" class="btn"
-                        style="background: #28a745; color: white; border: none; padding: 5px 10px; cursor: pointer;">Assign</button>
+                        style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        Assign
+                    </button>
                 </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                No cattle found in the database.
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
 {% endblock %}

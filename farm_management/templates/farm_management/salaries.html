@@ -1,0 +1,48 @@
+{% extends "farm_management/base.html" %}
+
+{% block content %}
+<h2>Employee Salary & Performance Management</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Monthly Salary</th>
+            <th>Performance Rating</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for emp in employees %}
+        <tr>
+            <td>{{ emp.0 }}</td>
+            <td>{{ emp.1 }}</td>
+            <td>{{ emp.2 }}</td>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="employee_id" value="{{ emp.0 }}">
+                <td>
+                    <input type="number" name="salary" value="{{ emp.3 }}" step="0.01" style="width: 100px;">
+                </td>
+                <td>
+                    <select name="rating">
+                        <option value="Poor" {% if emp.4 == 'Poor' %}selected{% endif %}>Poor</option>
+                        <option value="Average" {% if emp.4 == 'Average' %}selected{% endif %}>Average</option>
+                        <option value="Good" {% if emp.4 == 'Good' %}selected{% endif %}>Good</option>
+                        <option value="Excellent" {% if emp.4 == 'Excellent' %}selected{% endif %}>Excellent</option>
+                    </select>
+                </td>
+                <td>
+                    <button type="submit"
+                        style="background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                        Update
+                    </button>
+                </td>
+            </form>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

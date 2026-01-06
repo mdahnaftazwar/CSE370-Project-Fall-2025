@@ -99,10 +99,18 @@
 
     <div class="navbar">
         <a href="{% url 'animal_tracking' %}">🏠 Dashboard</a>
+
+        {% if request.session.user_type == 'Staff' and request.session.username != 'admin' %}
         <a href="{% url 'task_calendar' %}">📅 Task Calendar</a>
+        {% endif %}
 
         {% if request.session.username == 'admin' %}
         <a href="{% url 'assign_staff' %}">👥 Assign Staff</a>
+        {% endif %}
+
+        {% if request.session.username == 'admin' %}
+        <a href="{% url 'assign_staff' %}">👥 Assign Staff</a>
+        <a href="{% url 'manage_salaries' %}">💰 Manage Salaries</a>
         {% endif %}
 
         <div class="user-info">

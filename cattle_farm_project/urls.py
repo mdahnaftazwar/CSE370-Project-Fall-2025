@@ -16,7 +16,7 @@ Including another URLconf
 """
 
 from django.urls import path
-from farm_management import views #ZR
+from farm_management import views  # ZR
 from farm_management.views import (
     animal_tracking,
     assign_staff,
@@ -25,6 +25,7 @@ from farm_management.views import (
     add_breeding,
     breeding_log,
     task_calendar,
+    manage_salaries,
 )
 
 urlpatterns = [
@@ -35,12 +36,18 @@ urlpatterns = [
     # ----- Feature 3: Breeding -----> ZR
     path("breeding/<str:cattle_id>/", breeding_log, name="breeding_log"),
     path("breeding/add/<str:cattle_id>/", add_breeding, name="add_breeding"),
-    #Tazwar
+    # Tazwar
     path("calendar/", task_calendar, name="task_calendar"),
-    #ZR-Feature 2: Production and Yield
+    # ZR-Feature 2: Production and Yield
     # Feature 2: Yield & Production Tracking
-    path('production/<str:cattle_id>/', views.production_log, name='production_log'),
-    path('production/add/<str:cattle_id>/', views.add_production, name='add_production'),
-    path('production/update_sale/<str:cattle_id>/', views.update_sale_status, name='update_sale_status'),
-
+    path("production/<str:cattle_id>/", views.production_log, name="production_log"),
+    path(
+        "production/add/<str:cattle_id>/", views.add_production, name="add_production"
+    ),
+    path(
+        "production/update_sale/<str:cattle_id>/",
+        views.update_sale_status,
+        name="update_sale_status",
+    ),
+    path("salaries/", manage_salaries, name="manage_salaries"),
 ]
