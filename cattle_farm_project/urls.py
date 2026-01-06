@@ -27,6 +27,7 @@ from farm_management.views import (
     task_calendar,
     manage_salaries,
     manage_feed,
+    update_health,
 )
 
 urlpatterns = [
@@ -52,4 +53,5 @@ urlpatterns = [
     ),
     path("salaries/", manage_salaries, name="manage_salaries"),
     path("feed/", views.manage_feed, name="manage_feed"),
+    path("health/update/<str:cattle_id>/", update_health, name="update_health"),
 ]

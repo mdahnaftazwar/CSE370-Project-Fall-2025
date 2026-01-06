@@ -62,10 +62,10 @@ def animal_tracking(request):
         festival_tag = "🔵 New Year Offer"
 
     with connection.cursor() as cursor:
-        if username == "admin" or user_type == "Customer":
+        if username == "admin" or user_type == "Customer" or user_type == "Vet":
             # ADMIN/CUSTOMER VIEW: Show every cow, even those without staff
             query = """
-                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker, c.breeding_status, c.sale_status, c.estimated_value
+                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker, c.breeding_status, c.sale_status, c.estimated_value, c.health_score
                 FROM cattle c
                 LEFT JOIN employee e ON c.employee_id = e.id
                 LEFT JOIN user u ON e.user_id = u.id
@@ -74,7 +74,7 @@ def animal_tracking(request):
         else:
             # STAFF VIEW: Only show cattle assigned to THIS specific staff member
             query = """
-                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker, c.breeding_status, c.sale_status, c.estimated_value
+                SELECT c.cattle_id, c.name, c.gender, c.health_status, u.name as caretaker, c.breeding_status, c.sale_status, c.estimated_value, c.health_score
                 FROM cattle c
                 INNER JOIN employee e ON c.employee_id = e.id
                 INNER JOIN user u ON e.user_id = u.id
@@ -595,4 +595,40 @@ def manage_feed(request):
         request,
         "farm_management/feed.html",
         {"inventory": inventory, "logs": logs, "today": today},
+    )
+
+
+def update_health(request, cattle_id):
+    if request.session.get("user_type") != "Vet":
+        messages.error(request, "Access Denied: Only a Vet can update health scores.")
+        return redirect("animal_tracking")
+
+    if request.method == "POST":
+        score = int(request.POST.get("health_score"))
+
+        # Health categorization logic
+        if score < 30:
+            status = "Severely Sick"
+        elif score < 50:
+            status = "Sick"
+        elif score <= 80:
+            status = "Healthy"
+        else:
+            status = "Excellent"
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE cattle 
+                SET health_score = %s, health_status = %s 
+                WHERE cattle_id = %s
+            """,
+                [score, status, cattle_id],
+            )
+
+        messages.success(request, f"Health record for {cattle_id} updated to {status}.")
+        return redirect("animal_tracking")
+
+    return render(
+        request, "farm_management/update_health.html", {"cattle_id": cattle_id}
     )

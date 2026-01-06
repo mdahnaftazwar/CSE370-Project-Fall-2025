@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>
-    {% if request.session.user_type == 'Staff' %}
+    {% if request.session.user_type == 'Staff' and request.session.username != 'admin' %}
     My Assigned Cattle
     {% else %}
     Global Cattle Inventory
@@ -14,10 +14,9 @@
             <th>Cattle ID</th>
             <th>Animal Name</th>
             <th>Gender</th>
-            <th>Health Status</th>
-            <th>Assigned Caretaker</th>
+            <th>Health Score</th> <th>Health Status</th> <th>Assigned Caretaker</th>
             <th>Breeding Status</th>
-            <th>Breeding</th>
+            <th>Breeding Actions</th>
             <th>Production</th>
             <th>Sale Status</th>
         </tr>
@@ -28,10 +27,32 @@
             <td>{{ cattle.0 }}</td>
             <td>{{ cattle.1 }}</td>
             <td>{{ cattle.2 }}</td>
-            <td>{{ cattle.3 }}</td>
+            
+            <td style="font-weight: bold; text-align: center;">
+                {{ cattle.8|default:"--" }} / 100
+            </td>
+
+            <td>
+                {% if cattle.3 == "Excellent" %}
+                    <span style="color:#2e7d32; font-weight:bold;">🌟 {{ cattle.3 }}</span>
+                {% elif cattle.3 == "Healthy" %}
+                    <span style="color:#4CAF50; font-weight:bold;">✅ {{ cattle.3 }}</span>
+                {% elif cattle.3 == "Sick" %}
+                    <span style="color:#FFC107; font-weight:bold;">⚠️ {{ cattle.3 }}</span>
+                {% elif cattle.3 == "Severely Sick" %}
+                    <span style="color:#f44336; font-weight:bold;">🚨 {{ cattle.3 }}</span>
+                {% else %}
+                    {{ cattle.3 }}
+                {% endif %}
+
+                {% if request.session.user_type == 'Vet' %}
+                    <br>
+                    <a href="{% url 'update_health' cattle.0 %}" style="font-size: 11px; color: #e67e22; text-decoration:none;">[Edit Health]</a>
+                {% endif %}
+            </td>
+
             <td>{{ cattle.4|default:"Unassigned" }}</td>
 
-            <!-- Color-coded Breeding Status -->
             <td>
                 {% if cattle.5 %}
                     {% if cattle.5 == "Pregnant" %}
@@ -50,31 +71,26 @@
                 {% endif %}
             </td>
 
-
-            <!-- Add Record & View Log buttons -->
             <td>
                 {% if request.session.user_type == 'Staff' or request.session.user_type == 'Vet' %}
                 <a href="{% url 'add_breeding' cattle.0 %}"
-                    style="background-color:#4CAF50; color:white; padding:5px 10px; text-decoration:none; border-radius:4px; margin-right:5px;">
-                    Add Record
+                    style="background-color:#4CAF50; color:white; padding:5px 10px; text-decoration:none; border-radius:4px; margin-right:5px; font-size:12px;">
+                    Update
                 </a>
                 {% endif %}
-
                 <a href="{% url 'breeding_log' cattle.0 %}"
-                    style="background-color:#2196F3; color:white; padding:5px 10px; text-decoration:none; border-radius:4px;">
-                    View Log
+                    style="background-color:#2196F3; color:white; padding:5px 10px; text-decoration:none; border-radius:4px; font-size:12px;">
+                    Logs
                 </a>
             </td>
 
-            <!-- Production Log button -->
             <td>
                 <a href="{% url 'production_log' cattle.0 %}"
-                    style="background-color:#2196F3; color:white; padding:5px 10px; text-decoration:none; border-radius:4px;">
-                    View Production
+                    style="background-color:#2196F3; color:white; padding:5px 10px; text-decoration:none; border-radius:4px; font-size:12px;">
+                    Production
                 </a>
             </td>
 
-            <!-- Sale Status -->
             <td>
                 {% if cattle.6 == "For Sale" %}
                     <span style="color:#2e7d32; font-weight:bold;">🟢 For Sale</span>
@@ -87,17 +103,13 @@
                     <span style="color:#616161; font-weight:bold;">⚪ Not for Sale</span>
                 {% endif %}
 
-                {% if request.session.user_type in "Staff Vet" %}
+                {% if request.session.user_type == 'Staff' or request.session.user_type == 'Vet' %}
                     <br>
                     <a href="{% url 'update_sale_status' cattle.0 %}" style="font-size:12px; color:#2196F3; text-decoration:none;">Update Sale</a>
                 {% endif %}
             </td>
-
-
-
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
 {% endblock %}
