@@ -1,0 +1,97 @@
+{% extends "farm_management/base.html" %}
+
+{% block content %}
+<h2>Cattle Feed Management (Admin)</h2>
+
+{% for item in inventory %}
+    {% if item.1 < 50 %}
+        <div style="color: #721c24; background-color: #f8d7da; padding: 10px; margin-bottom: 10px; border: 1px solid #f5c6cb;">
+            <strong>LOW STOCK:</strong> {{ item.0 }} is only {{ item.1 }} kg.
+        </div>
+    {% endif %}
+{% endfor %}
+
+<div style="display: flex; gap: 20px;">
+    <div style="flex: 2;">
+        <h3>Current Stock</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feed Type</th>
+                    <th>Quantity</th>
+                    <th>Expires On</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in inventory %}
+                <tr>
+                    <td>{{ item.0 }}</td>
+                    
+                    <td>
+                        {{ item.1 }} kg
+                        {% if item.1 < 50 %}
+                             <b style="color: red;">(Low)</b>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ item.2 }}</td>
+                    
+                    <td>
+                        {% if item.2 < today %}
+                            <span style="color: red; font-weight: bold;">EXPIRED</span>
+                        {% else %}
+                            <span style="color: green;">OK</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="flex: 1; background: #eee; padding: 20px;">
+        <h3>Update Stock</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <p>Feed Type:<br>
+            <select name="feed_type" required>
+                <option value="Green Grass">Green Grass</option>
+                <option value="Silage">Silage</option>
+                <option value="Hay">Hay</option>
+                <option value="Supplements">Supplements</option>
+            </select></p>
+
+            <p>Quantity (kg):<br>
+            <input type="number" name="quantity" step="0.1" required></p>
+            
+            <button type="submit" name="action" value="add" style="background: green; color: white; padding: 10px;">Add</button>
+            <button type="submit" name="action" value="remove" style="background: red; color: white; padding: 10px;">Remove</button>
+        </form>
+    </div>
+</div>
+
+<hr>
+
+<h3>Activity Log</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Feed</th>
+            <th>Action</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.3 }}</td>
+            <td>{{ log.0 }}</td>
+            <td>{{ log.1 }}</td>
+            <td>{{ log.2 }} kg</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -26,6 +26,7 @@ from farm_management.views import (
     breeding_log,
     task_calendar,
     manage_salaries,
+    manage_feed,
 )
 
 urlpatterns = [
@@ -50,4 +51,5 @@ urlpatterns = [
         name="update_sale_status",
     ),
     path("salaries/", manage_salaries, name="manage_salaries"),
+    path("feed/", views.manage_feed, name="manage_feed"),
 ]

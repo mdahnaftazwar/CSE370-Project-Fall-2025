@@ -106,11 +106,8 @@
 
         {% if request.session.username == 'admin' %}
         <a href="{% url 'assign_staff' %}">👥 Assign Staff</a>
-        {% endif %}
-
-        {% if request.session.username == 'admin' %}
-        <a href="{% url 'assign_staff' %}">👥 Assign Staff</a>
         <a href="{% url 'manage_salaries' %}">💰 Manage Salaries</a>
+        <a href="{% url 'manage_feed' %}">🌾 Feed Management</a>
         {% endif %}
 
         <div class="user-info">

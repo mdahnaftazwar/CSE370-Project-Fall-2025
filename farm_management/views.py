@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils.dateparse import parse_date
 import datetime
 from decimal import Decimal
+from datetime import timedelta, date
 
 
 def login_view(request):
@@ -498,4 +499,100 @@ def manage_salaries(request):
 
     return render(
         request, "farm_management/salaries.html", {"employees": employee_data}
+    )
+
+
+def manage_feed(request):
+    # Security: Strictly Admin access
+    if request.session.get("username") != "admin":
+        messages.error(request, "Access Denied: Admin only.")
+        return redirect("animal_tracking")
+
+    # Required for the template to check for expired feed
+    today = date.today()
+
+    with connection.cursor() as cursor:
+        if request.method == "POST":
+            feed_type = request.POST.get("feed_type")
+            qty_input = request.POST.get("quantity")
+
+            # Ensure quantity is a valid Decimal
+            try:
+                qty_change = Decimal(qty_input)
+            except (TypeError, ValueError):
+                messages.error(request, "Invalid quantity entered.")
+                return redirect("manage_feed")
+
+            action = request.POST.get("action")  # 'add' or 'remove'
+
+            # Calculate Expiration Date based on standard feed life
+            days_valid = {
+                "Green Grass": 2,
+                "Silage": 365,
+                "Hay": 365,
+                "Supplements": 180,
+            }
+            expiry = today + timedelta(days=days_valid.get(feed_type, 30))
+
+            if action == "add":
+                # Update or Insert into inventory
+                cursor.execute(
+                    """
+                    INSERT INTO feed_inventory (feed_type, quantity_kg, expiration_date)
+                    VALUES (%s, %s, %s)
+                    ON DUPLICATE KEY UPDATE 
+                    quantity_kg = quantity_kg + %s, expiration_date = %s
+                """,
+                    [feed_type, qty_change, expiry, qty_change, expiry],
+                )
+
+                # Log the action for the audit trail
+                cursor.execute(
+                    "INSERT INTO feed_log (feed_type, action_type, quantity_kg) VALUES (%s, 'Added', %s)",
+                    [feed_type, qty_change],
+                )
+
+            elif action == "remove":
+                # Check current stock before removing to avoid negative values
+                cursor.execute(
+                    "SELECT quantity_kg FROM feed_inventory WHERE feed_type = %s",
+                    [feed_type],
+                )
+                current_stock = cursor.fetchone()
+
+                if current_stock and current_stock[0] >= qty_change:
+                    cursor.execute(
+                        "UPDATE feed_inventory SET quantity_kg = quantity_kg - %s WHERE feed_type = %s",
+                        [qty_change, feed_type],
+                    )
+                    cursor.execute(
+                        "INSERT INTO feed_log (feed_type, action_type, quantity_kg) VALUES (%s, 'Removed', %s)",
+                        [feed_type, qty_change],
+                    )
+                else:
+                    messages.error(
+                        request,
+                        f"Not enough {feed_type} in stock to remove {qty_change}kg.",
+                    )
+                    return redirect("manage_feed")
+
+            messages.success(request, f"Inventory updated for {feed_type}")
+            return redirect("manage_feed")
+
+        # Fetch current inventory and recent logs
+        cursor.execute(
+            "SELECT feed_type, quantity_kg, expiration_date FROM feed_inventory"
+        )
+        inventory = cursor.fetchall()
+
+        cursor.execute(
+            "SELECT feed_type, action_type, quantity_kg, log_date FROM feed_log ORDER BY log_date DESC LIMIT 10"
+        )
+        logs = cursor.fetchall()
+
+    # Pass 'today' to the context so feed.html can highlight expired items
+    return render(
+        request,
+        "farm_management/feed.html",
+        {"inventory": inventory, "logs": logs, "today": today},
     )
